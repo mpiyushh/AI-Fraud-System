@@ -87,7 +87,18 @@ Result displayed to User
 ## Team Members
 
 ### Krishnna Mudgal
-**Team Leader — Database, Backend & System Integration**
+**Team Leader-Machine Learning & Data Processing**
+
+Responsibilities:
+- Dataset preparation
+- Data preprocessing
+- Feature engineering
+- ML model development
+- Model evaluation
+- Fraud prediction
+
+### Piyush Mishra
+**Database, Backend & System Integration**
 
 Responsibilities:
 - Database architecture
@@ -101,16 +112,6 @@ Responsibilities:
 - Database testing
 - Backend integration
 
-### Piyush Mishra
-**Machine Learning & Data Processing**
-
-Responsibilities:
-- Dataset preparation
-- Data preprocessing
-- Feature engineering
-- ML model development
-- Model evaluation
-- Fraud prediction
 
 ### Shashank Chaturvedi
 **Frontend & UI/UX**
