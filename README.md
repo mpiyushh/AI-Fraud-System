@@ -56,7 +56,7 @@ being flagged for further investigation.
 - Apache Tomcat
 
 ### Database
-- PostgreSQL
+- Supabase
 
 ### Machine Learning
 - Python
