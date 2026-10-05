@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Data Access Object for User Profiles.
- * Fulfills "classes for the database operations - 7 marks".
+ * Supports Supabase PostgreSQL and SQLite via standard JDBC PreparedStatement.
  */
 public class UserProfileDAO implements GenericDAO<UserProfile, String> {
 
@@ -25,10 +25,21 @@ public class UserProfileDAO implements GenericDAO<UserProfile, String> {
 
     @Override
     public void save(UserProfile profile) throws DatabaseException {
-        String sql = "INSERT OR REPLACE INTO user_profiles " +
+        String sql = "INSERT INTO user_profiles " +
                 "(user_id, full_name, primary_location, trusted_device, avg_amount, std_dev, " +
                 " tx_count, chargeback_count, is_blacklisted, last_seen_timestamp, last_seen_location) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT (user_id) DO UPDATE SET " +
+                "  full_name = EXCLUDED.full_name, " +
+                "  primary_location = EXCLUDED.primary_location, " +
+                "  trusted_device = EXCLUDED.trusted_device, " +
+                "  avg_amount = EXCLUDED.avg_amount, " +
+                "  std_dev = EXCLUDED.std_dev, " +
+                "  tx_count = EXCLUDED.tx_count, " +
+                "  chargeback_count = EXCLUDED.chargeback_count, " +
+                "  is_blacklisted = EXCLUDED.is_blacklisted, " +
+                "  last_seen_timestamp = EXCLUDED.last_seen_timestamp, " +
+                "  last_seen_location = EXCLUDED.last_seen_location";
 
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -41,7 +52,7 @@ public class UserProfileDAO implements GenericDAO<UserProfile, String> {
             ps.setDouble(6, profile.getStandardDeviation());
             ps.setInt(7, profile.getTransactionCount());
             ps.setInt(8, profile.getChargebackCount());
-            ps.setInt(9, profile.isBlacklisted() ? 1 : 0);
+            ps.setBoolean(9, profile.isBlacklisted());
             ps.setLong(10, profile.getLastSeenTimestamp());
             ps.setString(11, profile.getLastSeenLocation());
 
@@ -102,7 +113,7 @@ public class UserProfileDAO implements GenericDAO<UserProfile, String> {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, blacklisted ? 1 : 0);
+            ps.setBoolean(1, blacklisted);
             ps.setString(2, userId);
             ps.executeUpdate();
 
@@ -136,7 +147,7 @@ public class UserProfileDAO implements GenericDAO<UserProfile, String> {
                 rs.getDouble("std_dev"),
                 rs.getInt("tx_count"),
                 rs.getInt("chargeback_count"),
-                rs.getInt("is_blacklisted") == 1
+                rs.getBoolean("is_blacklisted")
         );
         profile.setLastSeenTimestamp(rs.getLong("last_seen_timestamp"));
         profile.setLastSeenLocation(rs.getString("last_seen_location"));

@@ -1,0 +1,24 @@
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# SQLite local databases & logs
+*.db
+*.db-journal
+*.log
+
+# Java build artifacts
+*.class
+bin/
+target/
+build/
+.gradle/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Data Access Object for Transactions.
- * Fulfills "classes for the database operations - 7 marks" using JDBC PreparedStatement.
+ * Supports Supabase PostgreSQL and SQLite via standard JDBC PreparedStatement.
  */
 public class TransactionDAO implements GenericDAO<Transaction, String> {
 
@@ -28,10 +28,26 @@ public class TransactionDAO implements GenericDAO<Transaction, String> {
 
     @Override
     public void save(Transaction tx) throws DatabaseException {
-        String sql = "INSERT OR REPLACE INTO transactions " +
+        String sql = "INSERT INTO transactions " +
                 "(tx_id, user_id, user_name, card_masked, amount, currency, tx_timestamp, " +
                 " ip_address, location, device_hash, is_vpn_tor, bank, risk_score, verdict, dominant_threat, analyst_status) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT (tx_id) DO UPDATE SET " +
+                "  user_id = EXCLUDED.user_id, " +
+                "  user_name = EXCLUDED.user_name, " +
+                "  card_masked = EXCLUDED.card_masked, " +
+                "  amount = EXCLUDED.amount, " +
+                "  currency = EXCLUDED.currency, " +
+                "  tx_timestamp = EXCLUDED.tx_timestamp, " +
+                "  ip_address = EXCLUDED.ip_address, " +
+                "  location = EXCLUDED.location, " +
+                "  device_hash = EXCLUDED.device_hash, " +
+                "  is_vpn_tor = EXCLUDED.is_vpn_tor, " +
+                "  bank = EXCLUDED.bank, " +
+                "  risk_score = EXCLUDED.risk_score, " +
+                "  verdict = EXCLUDED.verdict, " +
+                "  dominant_threat = EXCLUDED.dominant_threat, " +
+                "  analyst_status = EXCLUDED.analyst_status";
 
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -46,7 +62,7 @@ public class TransactionDAO implements GenericDAO<Transaction, String> {
             ps.setString(8, tx.getIpAddress());
             ps.setString(9, tx.getLocation());
             ps.setString(10, tx.getDeviceHash());
-            ps.setInt(11, tx.isVpnOrTor() ? 1 : 0);
+            ps.setBoolean(11, tx.isVpnOrTor());
             ps.setString(12, tx.getBank());
 
             if (tx.getResult() != null) {
@@ -162,14 +178,14 @@ public class TransactionDAO implements GenericDAO<Transaction, String> {
                 rs.getString("ip_address"),
                 rs.getString("location"),
                 rs.getString("device_hash"),
-                rs.getInt("is_vpn_tor") == 1
+                rs.getBoolean("is_vpn_tor")
         );
 
         int riskScore = rs.getInt("risk_score");
         String verdictStr = rs.getString("verdict");
         String threat = rs.getString("dominant_threat");
 
-        if (verdictStr != null) {
+        if (verdictStr != null && !verdictStr.isEmpty()) {
             DetectionResult.Verdict verdict = DetectionResult.Verdict.valueOf(verdictStr);
             DetectionResult result = new DetectionResult(riskScore, verdict, threat, Collections.emptyList(), 12.0);
             tx.setResult(result);

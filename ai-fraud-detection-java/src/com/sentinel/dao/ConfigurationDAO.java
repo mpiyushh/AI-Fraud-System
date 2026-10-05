@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Data Access Object for System Configurations.
- * Fulfills Admin System Configuration persistence via JDBC.
+ * Supports Supabase PostgreSQL and SQLite via standard JDBC PreparedStatement.
  */
 public class ConfigurationDAO implements GenericDAO<SystemConfiguration, String> {
 
@@ -25,9 +25,16 @@ public class ConfigurationDAO implements GenericDAO<SystemConfiguration, String>
 
     @Override
     public void save(SystemConfiguration config) throws DatabaseException {
-        String sql = "INSERT OR REPLACE INTO system_configurations " +
+        String sql = "INSERT INTO system_configurations " +
                 "(config_key, block_threshold, challenge_threshold, velocity_limit, max_amount, tor_block, model_version) " +
-                "VALUES ('DEFAULT', ?, ?, ?, ?, ?, ?)";
+                "VALUES ('DEFAULT', ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT (config_key) DO UPDATE SET " +
+                "  block_threshold = EXCLUDED.block_threshold, " +
+                "  challenge_threshold = EXCLUDED.challenge_threshold, " +
+                "  velocity_limit = EXCLUDED.velocity_limit, " +
+                "  max_amount = EXCLUDED.max_amount, " +
+                "  tor_block = EXCLUDED.tor_block, " +
+                "  model_version = EXCLUDED.model_version";
 
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -36,7 +43,7 @@ public class ConfigurationDAO implements GenericDAO<SystemConfiguration, String>
             ps.setInt(2, config.getChallengeThreshold());
             ps.setInt(3, config.getVelocityBurstLimit());
             ps.setDouble(4, config.getMaxAmountCeiling());
-            ps.setInt(5, config.isTorHardBlock() ? 1 : 0);
+            ps.setBoolean(5, config.isTorHardBlock());
             ps.setString(6, config.getActiveModelVersion());
 
             ps.executeUpdate();
@@ -60,7 +67,7 @@ public class ConfigurationDAO implements GenericDAO<SystemConfiguration, String>
                         rs.getInt("challenge_threshold"),
                         rs.getInt("velocity_limit"),
                         rs.getDouble("max_amount"),
-                        rs.getInt("tor_block") == 1,
+                        rs.getBoolean("tor_block"),
                         rs.getString("model_version")
                 );
             }
