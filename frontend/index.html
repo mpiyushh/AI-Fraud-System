@@ -3,121 +3,683 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SENTINEL AI // Autonomous Fraud Detection System</title>
+  <title>SENTINEL AI // Autonomous UPI Fraud Defense System</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Universal Application Header -->
+  <!-- Universal Top Application Header -->
   <header class="app-header">
     <div class="header-container">
       <div class="brand-section">
         <div class="brand-logo">🛡️</div>
         <div class="brand-text">
-          <h1>SENTINEL AI</h1>
-          <p>Autonomous Fraud Detection & Anomaly Matrix</p>
+          <h1>SENTINEL AI <span class="badge badge-accent">UPI CORE</span></h1>
+          <p>Autonomous Fraud Detection & Explainable AI Matrix</p>
         </div>
       </div>
-      <div class="system-status">
-        <div class="status-indicator">
+
+      <div class="header-right">
+        <!-- Live Backend Status -->
+        <div class="status-indicator" title="Connected to embedded Java Backend">
           <span class="pulse-dot" id="serverPulseDot"></span>
           <span id="serverStatusText">Checking Backend API...</span>
         </div>
-        <span class="badge badge-accent">Port 8080</span>
+
+        <!-- User Profile Session Badge -->
+        <div class="header-user-profile">
+          <div class="user-avatar-mini" id="userAvatarIcon">👤</div>
+          <div class="user-info-text">
+            <span class="user-name-display" id="sessionUserName">Alexandre V.</span>
+            <span class="user-badge-id" id="sessionUserBadge">USR-101</span>
+          </div>
+          <button class="btn-header-action" id="btnSwitchUser" title="Switch Account / Identity">Switch</button>
+          <button class="btn-header-action" id="btnLogout" title="Logout session">Logout</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Container -->
-  <main class="main-content">
-    
-    <!-- Foundation Status & Architecture Card -->
-    <section class="foundation-card">
-      <h2>
-        <span>⚡</span> Frontend Foundation & API Connectivity
-      </h2>
-      <p>
-        The frontend architecture foundation has been established with standard HTML5, CSS3, and modern JavaScript. 
-        Direct REST API bindings connect directly to the embedded Java backend service.
-      </p>
+  <!-- 3-Column Application Layout -->
+  <div class="app-container">
 
-      <div class="endpoint-grid">
-        <div class="endpoint-item">
-          <span class="endpoint-method method-post">POST</span>
-          <span class="endpoint-path">/api/transactions</span>
-          <p class="endpoint-desc">Ingest transaction, trigger AI neural ensemble, and generate real-time SHAP attributions.</p>
+    <!-- ==========================================
+         COLUMN 1: SIDEBAR NAVIGATION
+         ========================================== -->
+    <aside class="app-sidebar">
+      <nav class="sidebar-nav">
+        <a href="#transaction" class="nav-item active" data-view="transaction">
+          <span class="nav-icon">⚡</span>
+          <span>New Transaction</span>
+        </a>
+        <a href="#history" class="nav-item" data-view="history">
+          <span class="nav-icon">📜</span>
+          <span>Transaction History</span>
+        </a>
+        <a href="#alerts" class="nav-item" data-view="alerts">
+          <span class="nav-icon">🚨</span>
+          <span>Fraud Alerts</span>
+          <span class="nav-badge" id="navAlertsBadge">Live</span>
+        </a>
+        <a href="#diagnostics" class="nav-item" data-view="diagnostics">
+          <span class="nav-icon">🔌</span>
+          <span>API Diagnostics</span>
+        </a>
+      </nav>
+
+      <!-- Active Shield AI Telemetry Card -->
+      <div class="sidebar-card-shield">
+        <div class="shield-header">
+          <span>🧠</span> Neural Ensemble
         </div>
-
-        <div class="endpoint-item">
-          <span class="endpoint-method method-get">GET</span>
-          <span class="endpoint-path">/api/metrics</span>
-          <p class="endpoint-desc">Fetch live KPI metrics: Total Screened, Capital Saved, Fraud Catch Rate, and Avg Latency.</p>
+        <div class="shield-stat">
+          <span>Active Detectors</span>
+          <strong>4 Models</strong>
         </div>
-
-        <div class="endpoint-item">
-          <span class="endpoint-method method-get">GET</span>
-          <span class="endpoint-path">/api/alerts</span>
-          <p class="endpoint-desc">Stream flagged transactions requiring 3DS step-up challenge or immediate auto-block.</p>
+        <div class="shield-stat">
+          <span>XAI Explanations</span>
+          <strong>SHAP Enabled</strong>
         </div>
-
-        <div class="endpoint-item">
-          <span class="endpoint-method method-get">GET</span>
-          <span class="endpoint-path">/api/health</span>
-          <p class="endpoint-desc">Probe server uptime, multi-threaded worker pools, and Supabase cloud connectivity.</p>
+        <div class="shield-stat">
+          <span>Inference Latency</span>
+          <strong id="sidebarLatencyVal">~1.2 ms</strong>
+        </div>
+        <div class="shield-stat">
+          <span>Security Protocol</span>
+          <strong>UPI 3DS / ISO-8583</strong>
         </div>
       </div>
+    </aside>
 
-      <!-- Live Connectivity Test Box -->
-      <div class="test-panel">
-        <div class="test-header">
-          <span class="test-title">Backend Connection Diagnostic</span>
-          <button class="btn btn-primary" id="btnTestConn">
-            <span>🔄</span> Test API Connection
+    <!-- ==========================================
+         COLUMN 2: MAIN WORKSPACE (DYNAMIC VIEWS)
+         ========================================== -->
+    <main class="main-viewport">
+
+      <!-- ----------------------------------------
+           VIEW 1: NEW TRANSACTION COMPOSER
+           ---------------------------------------- -->
+      <section class="view-section" id="view-transaction">
+        
+        <div class="tx-composer-card">
+          <div class="composer-header">
+            <div class="composer-title">
+              <h2>Create New Transaction</h2>
+              <p>Execute real-time UPI transfers with pre-flight AI fraud risk evaluation</p>
+            </div>
+            <div>
+              <select id="currencySelector" class="form-input text-xs" style="padding: 0.35rem 0.6rem; width: auto;">
+                <option value="INR" selected>INR (₹)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Session Profile Banner -->
+          <div class="session-context-bar">
+            <div class="session-context-left">
+              <span>Debiting Account:</span>
+              <strong id="sessionUserCard">Visa •• 4912</strong>
+              <span>Bank:</span>
+              <strong id="sessionUserBank">Chase</strong>
+            </div>
+            <button class="btn btn-xs btn-secondary" id="btnChangeAccount">Switch Profile</button>
+          </div>
+
+          <form id="formTransaction">
+            
+            <!-- Payment Method Cards (Modern UPI App Style) -->
+            <div class="section-subheading">
+              <span>💳</span> Select Payment Method
+            </div>
+
+            <div class="payment-methods-grid">
+              <!-- Method 1: UPI / QR Scan -->
+              <div class="payment-method-card active" data-method="upi-qr">
+                <div class="pm-icon-wrapper">📷</div>
+                <div class="pm-title">UPI / QR Scan</div>
+                <div class="pm-subtitle">Scan & Pay Any QR</div>
+              </div>
+
+              <!-- Method 2: Pay to Number -->
+              <div class="payment-method-card" data-method="pay-number">
+                <div class="pm-icon-wrapper">📱</div>
+                <div class="pm-title">Pay to Number</div>
+                <div class="pm-subtitle">10-Digit Mobile UPI</div>
+              </div>
+
+              <!-- Method 3: UPI ID -->
+              <div class="payment-method-card" data-method="upi-id">
+                <div class="pm-icon-wrapper">@</div>
+                <div class="pm-title">UPI ID</div>
+                <div class="pm-subtitle">user@bank VPA</div>
+              </div>
+
+              <!-- Method 4: Bank Transfer -->
+              <div class="payment-method-card" data-method="bank-transfer">
+                <div class="pm-icon-wrapper">🏦</div>
+                <div class="pm-title">Bank Transfer</div>
+                <div class="pm-subtitle">A/C + IFSC Transfer</div>
+              </div>
+            </div>
+
+            <!-- Dynamic Input Panels -->
+            <div class="dynamic-panels-wrapper">
+
+              <!-- PANEL 1: UPI / QR SCAN -->
+              <div class="payment-method-panel" data-panel="upi-qr">
+                <div class="qr-scanner-box">
+                  <div class="qr-box-content">
+                    <div class="qr-box-icon">📷</div>
+                    <div class="qr-box-text">
+                      <h4>Scan QR Code</h4>
+                      <p>Scan any UPI QR code or BharatQR to initiate instant payment</p>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="btnOpenQrScanner">
+                    <span>📷</span> Scan QR
+                  </button>
+                </div>
+
+                <div class="qr-divider">
+                  <span>OR</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Enter UPI ID / Mobile Number</span>
+                  </label>
+                  <div class="input-container">
+                    <input type="text" id="qrUpiInput" class="form-input" placeholder="example@upi or 9876543210" value="merchant@okhdfcbank">
+                  </div>
+                  <div class="field-error-msg hidden" id="errQrUpi"></div>
+                </div>
+
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Merchant / Recipient Name (Optional)</label>
+                    <input type="text" id="qrRecipientName" class="form-input" placeholder="e.g. Starbucks Coffee" value="Starbucks Coffee">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <div class="input-container">
+                      <span class="input-prefix currency-prefix">₹</span>
+                      <input type="number" step="0.01" min="0.01" id="qrAmountInput" class="form-input has-currency amount-input" placeholder="0.00" value="450.00">
+                    </div>
+                    <div class="field-error-msg hidden" id="errQrAmount"></div>
+                  </div>
+                </div>
+
+                <div class="quick-chips-row">
+                  <span class="chip amount-chip" data-amount="100">₹100</span>
+                  <span class="chip amount-chip" data-amount="500">₹500</span>
+                  <span class="chip amount-chip" data-amount="1500">₹1,500</span>
+                  <span class="chip amount-chip" data-amount="5000">₹5,000</span>
+                  <span class="chip amount-chip" data-amount="9500">₹9,500 (High Risk Test)</span>
+                </div>
+              </div>
+
+              <!-- PANEL 2: PAY TO NUMBER -->
+              <div class="payment-method-panel hidden" data-panel="pay-number">
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Mobile Number</span>
+                    <span class="text-xs text-muted">10-Digit Mobile</span>
+                  </label>
+                  <div class="input-container">
+                    <span class="input-prefix">+91</span>
+                    <input type="tel" id="phoneRecipientNumber" class="form-input has-prefix" placeholder="98765 43210" maxlength="10" value="9876543210">
+                  </div>
+                  <div class="field-error-msg hidden" id="errPhoneNumber"></div>
+                </div>
+
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Recipient Name</label>
+                    <input type="text" id="phoneRecipientName" class="form-input" placeholder="e.g. Rahul Sharma" value="Rahul Sharma">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <div class="input-container">
+                      <span class="input-prefix currency-prefix">₹</span>
+                      <input type="number" step="0.01" min="0.01" id="phoneAmountInput" class="form-input has-currency amount-input" placeholder="0.00" value="1200.00">
+                    </div>
+                    <div class="field-error-msg hidden" id="errPhoneAmount"></div>
+                  </div>
+                </div>
+
+                <div class="quick-chips-row">
+                  <span class="chip amount-chip" data-amount="200">₹200</span>
+                  <span class="chip amount-chip" data-amount="1000">₹1,000</span>
+                  <span class="chip amount-chip" data-amount="2500">₹2,500</span>
+                  <span class="chip amount-chip" data-amount="12000">₹12,000</span>
+                </div>
+              </div>
+
+              <!-- PANEL 3: UPI ID (VPA) -->
+              <div class="payment-method-panel hidden" data-panel="upi-id">
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Virtual Payment Address (UPI ID)</span>
+                  </label>
+                  <div class="input-container">
+                    <span class="input-prefix">@</span>
+                    <input type="text" id="upiIdInput" class="form-input has-prefix" placeholder="username@okhdfcbank" value="priya.sharma@okaxis">
+                  </div>
+                  <div class="field-error-msg hidden" id="errUpiId"></div>
+                  <div class="quick-chips-row">
+                    <span class="chip vpa-chip" data-handle="@okhdfcbank">@okhdfcbank</span>
+                    <span class="chip vpa-chip" data-handle="@okaxis">@okaxis</span>
+                    <span class="chip vpa-chip" data-handle="@oksbi">@oksbi</span>
+                    <span class="chip vpa-chip" data-handle="@okicici">@okicici</span>
+                    <span class="chip vpa-chip" data-handle="@ybl">@ybl (PhonePe)</span>
+                  </div>
+                </div>
+
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Recipient Name</label>
+                    <input type="text" id="upiRecipientName" class="form-input" placeholder="e.g. Priya Sharma" value="Priya Sharma">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <div class="input-container">
+                      <span class="input-prefix currency-prefix">₹</span>
+                      <input type="number" step="0.01" min="0.01" id="upiAmountInput" class="form-input has-currency amount-input" placeholder="0.00" value="2400.00">
+                    </div>
+                    <div class="field-error-msg hidden" id="errUpiAmount"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANEL 4: BANK TRANSFER (IMPS / NEFT) -->
+              <div class="payment-method-panel hidden" data-panel="bank-transfer">
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Account Holder Name</label>
+                    <input type="text" id="bankAccountHolder" class="form-input" placeholder="e.g. Vikramaditya Rao" value="Vikramaditya Rao">
+                    <div class="field-error-msg hidden" id="errBankHolder"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Bank Name</label>
+                    <select id="bankNameSelect" class="form-input">
+                      <option value="HDFC Bank">HDFC Bank</option>
+                      <option value="State Bank of India">State Bank of India (SBI)</option>
+                      <option value="ICICI Bank">ICICI Bank</option>
+                      <option value="Axis Bank">Axis Bank</option>
+                      <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                      <option value="Chase">Chase</option>
+                      <option value="Barclays">Barclays</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row-2col">
+                  <div class="form-group">
+                    <label class="form-label">Account Number</label>
+                    <input type="password" id="bankAccountNumber" class="form-input" placeholder="•••• •••• •••• 5421" value="50100492817421">
+                    <div class="field-error-msg hidden" id="errBankAccount"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">IFSC Code</label>
+                    <input type="text" id="bankIfscCode" class="form-input font-mono" placeholder="HDFC0001234" maxlength="11" value="HDFC0001842">
+                    <div class="field-error-msg hidden" id="errBankIfsc"></div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Amount</label>
+                  <div class="input-container">
+                    <span class="input-prefix currency-prefix">₹</span>
+                    <input type="number" step="0.01" min="0.01" id="bankAmountInput" class="form-input has-currency amount-input" placeholder="0.00" value="8500.00">
+                  </div>
+                  <div class="field-error-msg hidden" id="errBankAmount"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Fraud Engine Context & Origin Anomaly Vectors -->
+            <div class="tx-parameters-card">
+              <div class="section-subheading">
+                <span>🌐</span> Fraud Engine Context & Origin Vectors
+              </div>
+
+              <div class="form-row-2col">
+                <div class="form-group">
+                  <label class="form-label">Origin Location (Geo Telemetry)</label>
+                  <select id="txLocation" class="form-input">
+                    <option value="Mumbai, IN (Home)" selected>Mumbai, IN (Home)</option>
+                    <option value="Bangalore, IN">Bangalore, IN</option>
+                    <option value="Delhi, IN">Delhi, IN</option>
+                    <option value="London, UK">London, UK (Home Base)</option>
+                    <option value="Austin, US">Austin, US</option>
+                    <option value="Tokyo, JP">Tokyo, JP</option>
+                    <option value="Kyiv, UA (Anomalous)">Kyiv, UA (Severe Geo-Anomaly)</option>
+                    <option value="Unknown Proxy Node">Unknown Proxy Node (High Risk)</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="justify-content: flex-end;">
+                  <label class="toggle-container">
+                    <input type="checkbox" id="txVpnOrTor" class="toggle-checkbox">
+                    <div>
+                      <div class="toggle-label-text">
+                        <span>🕵️</span> Simulate Masked Proxy / Tor Node
+                      </div>
+                      <div class="toggle-desc">Routes IP traffic through anonymous proxy exit point</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main CTA Button -->
+            <button type="submit" class="btn-analyze-cta" id="btnAnalyze">
+              <span>⚡</span>
+              <span>Analyze Transaction</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Real-Time AI Fraud Evaluation Result -->
+        <div class="fraud-result-wrapper" id="fraudResultContainer">
+          
+          <!-- Placeholder State before evaluation -->
+          <div class="result-placeholder" id="fraudResultPlaceholder">
+            <div class="placeholder-icon">🛡️</div>
+            <h3>Awaiting Transaction Analysis</h3>
+            <p>Select a payment method, fill recipient details, and click "Analyze Transaction" to run the autonomous AI neural ensemble.</p>
+          </div>
+
+          <!-- Active Result Display (Populated dynamically from real backend API) -->
+          <div class="result-card-active hidden" id="fraudResultCard">
+            
+            <div class="result-top-grid">
+              <!-- Risk Score Gauge -->
+              <div class="score-gauge-box">
+                <svg viewBox="0 0 100 100">
+                  <circle class="gauge-bg" cx="50" cy="50" r="45"></circle>
+                  <circle class="gauge-progress" id="resScoreRing" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="gauge-value-display">
+                  <strong id="resRiskScore">0%</strong>
+                  <span>Risk Score</span>
+                </div>
+              </div>
+
+              <!-- Verdict Summary -->
+              <div class="result-verdict-summary">
+                <div class="verdict-badge" id="resVerdictBadge">APPROVED</div>
+                <h3 class="result-verdict-title" id="resVerdictTitle">Autonomous Risk Cleared</h3>
+                <p class="result-threat-desc" id="resThreatSignal">Standard Consumer Velocity Pattern</p>
+              </div>
+            </div>
+
+            <!-- Transaction Metadata -->
+            <div class="result-meta-cards">
+              <div class="meta-mini-card">
+                <label>Recipient</label>
+                <span id="resRecipient">Amazon</span>
+              </div>
+              <div class="meta-mini-card">
+                <label>Amount</label>
+                <span id="resAmount" class="text-accent">₹9,500.00</span>
+              </div>
+              <div class="meta-mini-card">
+                <label>Inference Latency</label>
+                <span id="resLatency">1.25 ms</span>
+              </div>
+              <div class="meta-mini-card">
+                <label>Transaction ID</label>
+                <span id="resTxId" class="font-mono">TX-0000</span>
+              </div>
+            </div>
+
+            <!-- SHAP Explainable AI Attributions -->
+            <div class="shap-attributions-container">
+              <div class="shap-header">
+                <span>🧠 Explainable AI (SHAP) Threat Signals</span>
+                <span class="text-xs text-dim">Ensemble Feature Vectors</span>
+              </div>
+              <div class="attributions-list" id="resAttributionsList">
+                <!-- Attributions injected dynamically from backend response -->
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+              <button type="button" class="btn btn-secondary w-full" id="btnResetForm">
+                <span>🔄</span> Compose Another Transaction
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ----------------------------------------
+           VIEW 2: TRANSACTION HISTORY
+           ---------------------------------------- -->
+      <section class="view-section hidden" id="view-history">
+        <div class="tx-composer-card">
+          <div class="composer-header">
+            <div class="composer-title">
+              <h2>Transaction History</h2>
+              <p>Audited record of all evaluated payment transactions</p>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Recipient</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Origin Geo</th>
+                  <th>Verdict</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="7" class="text-center">Loading transactions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------
+           VIEW 3: FRAUD ALERTS FEED
+           ---------------------------------------- -->
+      <section class="view-section hidden" id="view-alerts">
+        <div class="tx-composer-card">
+          <div class="composer-header">
+            <div class="composer-title">
+              <h2>Fraud Alerts & Challenged Vectors</h2>
+              <p>High-risk transactions flagged for 3DS challenge or immediate auto-block</p>
+            </div>
+          </div>
+          <div id="alertsGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------
+           VIEW 4: BACKEND DIAGNOSTICS
+           ---------------------------------------- -->
+      <section class="view-section hidden" id="view-diagnostics">
+        <div class="tx-composer-card">
+          <div class="composer-header">
+            <div class="composer-title">
+              <h2>API Foundation & Health Diagnostic</h2>
+              <p>Direct REST API connectivity bindings to embedded Java Engine on port 8080</p>
+            </div>
+            <button class="btn btn-primary" id="btnTestConn">
+              <span>🔄</span> Probe API
+            </button>
+          </div>
+          <pre class="test-output" id="connectionOutput" style="margin-top: 1rem;">Click "Probe API" to test GET /api/health</pre>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==========================================
+         COLUMN 3: TRANSACTION ALERTS & PERSONAL SECURITY LOG
+         ========================================== -->
+    <aside class="security-log-panel">
+      <div class="log-panel-header">
+        <div class="log-title-group">
+          <h3>
+            <span>🛡️</span> Security Log
+          </h3>
+          <p>Personal account transaction monitoring</p>
+        </div>
+        <button class="btn-icon-refresh" id="btnRefreshLog" title="Refresh Security Log">
+          🔄
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="log-filter-bar">
+        <button class="log-filter-tab active" data-filter="all">All (<span id="securityLogCount">0</span>)</button>
+        <button class="log-filter-tab" data-filter="blocked">Blocked</button>
+        <button class="log-filter-tab" data-filter="challenged">Challenged</button>
+        <button class="log-filter-tab" data-filter="approved">Safe</button>
+      </div>
+
+      <!-- Live Transaction Feed List -->
+      <div class="security-log-feed" id="securityLogList">
+        <div class="log-empty-state" id="securityLogEmpty">
+          <div class="empty-icon">🛡️</div>
+          <h4>No transactions yet</h4>
+          <p>Your transaction history will appear here after your first analysis.</p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: USER / PROFILE SWITCHER
+       ========================================== -->
+  <div class="modal-overlay hidden" id="modalUserSwitch">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>👤</span> Switch Account Session</h3>
+        <button class="btn-modal-close" id="btnCloseUserModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-xs text-muted">Select an existing customer profile or threat persona to simulate user transactions:</p>
+        <div id="userListContainer" style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <!-- Loaded from GET /api/users -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: QR CODE SCANNER VIEWFINDER
+       ========================================== -->
+  <div class="modal-overlay hidden" id="modalQrScanner">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><span>📷</span> UPI QR Code Scanner</h3>
+        <button class="btn-modal-close" id="btnCloseQrModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Viewfinder Box (No fake camera permissions) -->
+        <div class="qr-viewfinder-frame">
+          <div class="qr-laser-line"></div>
+          <div class="qr-corner qr-corner-tl"></div>
+          <div class="qr-corner qr-corner-tr"></div>
+          <div class="qr-corner qr-corner-bl"></div>
+          <div class="qr-corner qr-corner-br"></div>
+          <span style="font-size: 2.5rem; opacity: 0.3;">📷</span>
+        </div>
+
+        <p class="qr-viewfinder-notice">
+          <strong>QR Scanner Viewfinder</strong><br>
+          Direct camera feed module placeholder. Choose a sample merchant QR payload below or enter manually on the main screen:
+        </p>
+
+        <div class="qr-sample-grid">
+          <button type="button" class="btn btn-secondary btn-xs qr-sample-btn" data-upi="starbucks@okhdfcbank" data-name="Starbucks India" data-amount="380.00">
+            ☕ Starbucks (₹380)
+          </button>
+          <button type="button" class="btn btn-secondary btn-xs qr-sample-btn" data-upi="reliance.retail@okaxis" data-name="Reliance Smart" data-amount="1850.00">
+            🛒 Reliance (₹1,850)
+          </button>
+          <button type="button" class="btn btn-secondary btn-xs qr-sample-btn" data-upi="croma.electronics@oksbi" data-name="Croma Electronics" data-amount="9500.00">
+            💻 Croma (₹9,500)
+          </button>
+          <button type="button" class="btn btn-secondary btn-xs qr-sample-btn" data-upi="uber.rides@okaxis" data-name="Uber Rides" data-amount="240.00">
+            🚕 Uber (₹240)
           </button>
         </div>
-        <pre class="test-output" id="connectionOutput">Click "Test API Connection" to probe GET /api/health on http://localhost:8080/api</pre>
       </div>
-    </section>
+    </div>
+  </div>
 
-  </main>
+  <!-- ==========================================
+       MODAL 3: TRANSACTION DETAILS & XAI INSPECTOR
+       ========================================== -->
+  <div class="modal-overlay hidden" id="modalTxDetails">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><span>🔍</span> Transaction Inspection & XAI</h3>
+        <button class="btn-modal-close" id="btnCloseTxModal">&times;</button>
+      </div>
+      <div class="modal-body" id="modalTxContent">
+        <!-- Injected dynamically on click -->
+      </div>
+    </div>
+  </div>
 
   <!-- App Footer -->
   <footer class="app-footer">
-    <p>SENTINEL AI &bull; Autonomous Fraud Detection System &bull; <span>Frontend Layer v1.0</span></p>
+    <p>SENTINEL AI &bull; Autonomous Fraud Detection System &bull; <span>Modern UPI Interface v2.0</span></p>
   </footer>
 
   <!-- Scripts -->
   <script src="js/api.js"></script>
+  <script src="js/transaction.js"></script>
   <script>
+    // Hook up the diagnostics button on the API Foundation tab
     document.addEventListener('DOMContentLoaded', () => {
-      const pulseDot = document.getElementById('serverPulseDot');
-      const statusText = document.getElementById('serverStatusText');
-      const output = document.getElementById('connectionOutput');
       const btnTest = document.getElementById('btnTestConn');
-
-      async function testConnection() {
-        output.textContent = `Connecting to ${SentinelAPI.getBaseUrl()}/health ...`;
-        pulseDot.className = 'pulse-dot';
-        statusText.textContent = 'Probing API...';
-
-        try {
-          const res = await SentinelAPI.checkHealth();
-          pulseDot.className = 'pulse-dot online';
-          statusText.textContent = 'Backend Online (Port 8080)';
-          output.textContent = JSON.stringify(res, null, 2);
-        } catch (err) {
-          pulseDot.className = 'pulse-dot offline';
-          statusText.textContent = 'Backend Offline';
-          output.textContent = `Error connecting to ${SentinelAPI.getBaseUrl()}/health:\n${err.message}\n\nPlease ensure the Java backend is running on port 8080 (via BackendServerLauncher or run.bat).`;
-        }
+      const output = document.getElementById('connectionOutput');
+      if (btnTest && output) {
+        btnTest.addEventListener('click', async () => {
+          output.textContent = `Probing ${SentinelAPI.getBaseUrl()}/health ...`;
+          try {
+            const res = await SentinelAPI.checkHealth();
+            output.textContent = JSON.stringify(res, null, 2);
+          } catch (err) {
+            output.textContent = `Error connecting to API:\n${err.message}`;
+          }
+        });
       }
-
-      btnTest.addEventListener('click', testConnection);
-      // Auto test on initial load
-      testConnection();
+      const btnChangeAccount = document.getElementById('btnChangeAccount');
+      if (btnChangeAccount) {
+        btnChangeAccount.addEventListener('click', () => {
+          const btnSwitchUser = document.getElementById('btnSwitchUser');
+          if (btnSwitchUser) btnSwitchUser.click();
+        });
+      }
     });
   </script>
 </body>
