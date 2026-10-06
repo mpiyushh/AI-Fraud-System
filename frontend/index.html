@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTINEL AI // Autonomous Fraud Detection System</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Universal Application Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-logo">🛡️</div>
+        <div class="brand-text">
+          <h1>SENTINEL AI</h1>
+          <p>Autonomous Fraud Detection & Anomaly Matrix</p>
+        </div>
+      </div>
+      <div class="system-status">
+        <div class="status-indicator">
+          <span class="pulse-dot" id="serverPulseDot"></span>
+          <span id="serverStatusText">Checking Backend API...</span>
+        </div>
+        <span class="badge badge-accent">Port 8080</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+    
+    <!-- Foundation Status & Architecture Card -->
+    <section class="foundation-card">
+      <h2>
+        <span>⚡</span> Frontend Foundation & API Connectivity
+      </h2>
+      <p>
+        The frontend architecture foundation has been established with standard HTML5, CSS3, and modern JavaScript. 
+        Direct REST API bindings connect directly to the embedded Java backend service.
+      </p>
+
+      <div class="endpoint-grid">
+        <div class="endpoint-item">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/api/transactions</span>
+          <p class="endpoint-desc">Ingest transaction, trigger AI neural ensemble, and generate real-time SHAP attributions.</p>
+        </div>
+
+        <div class="endpoint-item">
+          <span class="endpoint-method method-get">GET</span>
+          <span class="endpoint-path">/api/metrics</span>
+          <p class="endpoint-desc">Fetch live KPI metrics: Total Screened, Capital Saved, Fraud Catch Rate, and Avg Latency.</p>
+        </div>
+
+        <div class="endpoint-item">
+          <span class="endpoint-method method-get">GET</span>
+          <span class="endpoint-path">/api/alerts</span>
+          <p class="endpoint-desc">Stream flagged transactions requiring 3DS step-up challenge or immediate auto-block.</p>
+        </div>
+
+        <div class="endpoint-item">
+          <span class="endpoint-method method-get">GET</span>
+          <span class="endpoint-path">/api/health</span>
+          <p class="endpoint-desc">Probe server uptime, multi-threaded worker pools, and Supabase cloud connectivity.</p>
+        </div>
+      </div>
+
+      <!-- Live Connectivity Test Box -->
+      <div class="test-panel">
+        <div class="test-header">
+          <span class="test-title">Backend Connection Diagnostic</span>
+          <button class="btn btn-primary" id="btnTestConn">
+            <span>🔄</span> Test API Connection
+          </button>
+        </div>
+        <pre class="test-output" id="connectionOutput">Click "Test API Connection" to probe GET /api/health on http://localhost:8080/api</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <p>SENTINEL AI &bull; Autonomous Fraud Detection System &bull; <span>Frontend Layer v1.0</span></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pulseDot = document.getElementById('serverPulseDot');
+      const statusText = document.getElementById('serverStatusText');
+      const output = document.getElementById('connectionOutput');
+      const btnTest = document.getElementById('btnTestConn');
+
+      async function testConnection() {
+        output.textContent = `Connecting to ${SentinelAPI.getBaseUrl()}/health ...`;
+        pulseDot.className = 'pulse-dot';
+        statusText.textContent = 'Probing API...';
+
+        try {
+          const res = await SentinelAPI.checkHealth();
+          pulseDot.className = 'pulse-dot online';
+          statusText.textContent = 'Backend Online (Port 8080)';
+          output.textContent = JSON.stringify(res, null, 2);
+        } catch (err) {
+          pulseDot.className = 'pulse-dot offline';
+          statusText.textContent = 'Backend Offline';
+          output.textContent = `Error connecting to ${SentinelAPI.getBaseUrl()}/health:\n${err.message}\n\nPlease ensure the Java backend is running on port 8080 (via BackendServerLauncher or run.bat).`;
+        }
+      }
+
+      btnTest.addEventListener('click', testConnection);
+      // Auto test on initial load
+      testConnection();
+    });
+  </script>
+</body>
+</html>
