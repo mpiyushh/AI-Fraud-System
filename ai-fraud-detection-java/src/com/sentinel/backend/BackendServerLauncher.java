@@ -1,7 +1,8 @@
 package com.sentinel.backend;
 
 import com.sentinel.backend.server.SentinelApiServer;
-import com.sentinel.db.DatabaseConnectionFactory;
+import com.sentinel.supabase.SupabaseClient;
+import com.sentinel.supabase.SupabaseConfig;
 
 /**
  * Standalone entry point for launching the Sentinel AI Backend REST API Server.
@@ -14,10 +15,20 @@ public class BackendServerLauncher {
         System.out.println("=====================================================================");
 
         try {
-            // 1. Initialize Supabase / Database Connection & Tables
-            System.out.println("[BOOT] Connecting to Database & Initializing Schemas...");
-            DatabaseConnectionFactory.getInstance().initializeDatabase();
-            System.out.println("[BOOT] Database connectivity verified.");
+            // 1. Initialize Supabase API Connection
+            System.out.println("[BOOT] Connecting to Supabase API (HTTPS REST Client)...");
+            if (!SupabaseConfig.isConfigured()) {
+                System.err.println("[BOOT ERROR] " + SupabaseConfig.getMissingConfigMessage());
+                System.exit(1);
+                return;
+            }
+
+            try {
+                SupabaseClient.getInstance().checkConnection();
+                System.out.println("[BOOT] Supabase API Endpoint Connected: " + SupabaseConfig.getSupabaseUrl());
+            } catch (Exception e) {
+                System.out.println("[BOOT NOTICE] Supabase configured: " + SupabaseConfig.getSupabaseUrl());
+            }
 
             // 2. Start HTTP REST Server
             int port = SentinelApiServer.resolvePort();

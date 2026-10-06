@@ -21,8 +21,8 @@ if exist "SentinelFraudDefense.jar" del /f /q "SentinelFraudDefense.jar"
 if exist "bin" rd /s /q "bin"
 mkdir bin
 
-echo [2/4] Compiling Java source code with Supabase PostgreSQL JDBC...
-set "CP=lib\postgresql-42.7.3.jar;lib\slf4j-api.jar;lib\slf4j-simple.jar"
+echo [2/4] Compiling Java source code for Supabase API architecture...
+set "CP=lib\slf4j-api.jar;lib\slf4j-simple.jar"
 
 dir /s /b src\*.java > sources.txt
 javac -encoding UTF-8 -cp "%CP%" -d bin @sources.txt
@@ -34,17 +34,16 @@ if %COMPILE_ERR% NEQ 0 (
     exit /b %COMPILE_ERR%
 )
 
-echo [3/4] Extracting PostgreSQL and SLF4J dependencies into fat package...
+echo [3/4] Extracting runtime dependencies into fat package...
 cd bin
-jar -xf ..\lib\postgresql-42.7.3.jar
-jar -xf ..\lib\slf4j-api.jar
-jar -xf ..\lib\slf4j-simple.jar
+if exist "..\lib\slf4j-api.jar" jar -xf ..\lib\slf4j-api.jar
+if exist "..\lib\slf4j-simple.jar" jar -xf ..\lib\slf4j-simple.jar
 cd ..
 
 echo [4/4] Packaging standalone fat JAR SentinelFraudDefense.jar...
 jar -cfe SentinelFraudDefense.jar com.sentinel.Main -C bin .
 
 echo ========================================================
-echo BUILD SUCCESSFUL!
+echo BUILD SUCCESSFUL
 echo Output: SentinelFraudDefense.jar
 echo ========================================================

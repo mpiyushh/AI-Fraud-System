@@ -3,8 +3,8 @@ package com.sentinel.test;
 import com.sentinel.backend.dto.ApiResponse;
 import com.sentinel.backend.server.SentinelApiServer;
 import com.sentinel.backend.util.JsonUtils;
-import com.sentinel.db.DatabaseConnectionFactory;
 import com.sentinel.service.FraudDetectionEngine;
+import com.sentinel.supabase.SupabaseConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -34,11 +34,6 @@ public class BackendIntegrationTest {
         SentinelApiServer server = null;
 
         try {
-            // Configure test database if no Supabase environment variable is set
-            if (DatabaseConnectionFactory.resolveConfig("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL") == null) {
-                DatabaseConnectionFactory.configure("jdbc:sqlite:backend_test_db.db");
-            }
-
             // 1. Boot up backend server on test port
             int testPort = 8089;
             FraudDetectionEngine engine = new FraudDetectionEngine();

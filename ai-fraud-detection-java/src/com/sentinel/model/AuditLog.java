@@ -18,6 +18,10 @@ public class AuditLog implements Serializable {
         this(null, transactionId, analystName, actionTaken, System.currentTimeMillis());
     }
 
+    public AuditLog(String transactionId, String analystName, String actionTaken, long timestamp) {
+        this(null, transactionId, analystName, actionTaken, timestamp);
+    }
+
     public AuditLog(Long logId, String transactionId, String analystName, String actionTaken, long timestamp) {
         this.logId = logId;
         this.transactionId = transactionId != null ? transactionId : "";

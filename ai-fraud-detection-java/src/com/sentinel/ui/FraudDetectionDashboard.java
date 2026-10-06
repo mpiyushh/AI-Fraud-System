@@ -626,7 +626,7 @@ public class FraudDetectionDashboard extends JFrame implements TransactionListen
                     "System Configuration Updated Successfully!\n"
                     + "- Auto-Block Threshold: Risk >= " + block + "\n"
                     + "- 3DS Challenge Threshold: Risk >= " + challenge + "\n"
-                    + "- Changes persisted to JDBC database.",
+                    + "- Changes persisted to Supabase database.",
                     "Configuration Saved", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (Exception ex) {

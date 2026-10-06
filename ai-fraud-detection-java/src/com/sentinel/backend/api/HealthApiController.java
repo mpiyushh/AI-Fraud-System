@@ -2,17 +2,17 @@ package com.sentinel.backend.api;
 
 import com.sentinel.backend.dto.ApiResponse;
 import com.sentinel.backend.service.FraudBackendService;
-import com.sentinel.db.DatabaseConnectionFactory;
+import com.sentinel.supabase.SupabaseClient;
+import com.sentinel.supabase.SupabaseConfig;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.sql.Connection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * REST API Controller for health probes and system readiness.
  * Endpoint:
- * - GET /api/health -> Health status of server, Supabase connection, and AI engine
+ * - GET /api/health -> Health status of server, Supabase API connection, and AI engine
  */
 public class HealthApiController extends BaseApiHandler {
 
@@ -30,20 +30,21 @@ public class HealthApiController extends BaseApiHandler {
         health.put("service", "Sentinel AI Fraud Detection Matrix");
         health.put("uptimeSeconds", (System.currentTimeMillis() - startTime) / 1000);
 
-        // Test Database Connectivity
-        boolean dbOk = false;
-        String dbError = null;
-        try (Connection conn = DatabaseConnectionFactory.getInstance().getConnection()) {
-            dbOk = conn != null && !conn.isClosed();
+        // Test Supabase API Connectivity
+        boolean supabaseOk = false;
+        String supabaseError = null;
+        try {
+            supabaseOk = SupabaseConfig.isConfigured() && SupabaseClient.getInstance().checkConnection();
         } catch (Exception e) {
-            dbError = e.getMessage();
+            supabaseError = e.getMessage();
         }
 
         Map<String, Object> dbStatus = new LinkedHashMap<>();
-        dbStatus.put("connected", dbOk);
-        dbStatus.put("url", DatabaseConnectionFactory.getInstance().getDbUrl());
-        dbStatus.put("isPostgres", DatabaseConnectionFactory.getInstance().isPostgreSql());
-        if (dbError != null) dbStatus.put("error", dbError);
+        dbStatus.put("connected", supabaseOk);
+        dbStatus.put("configured", SupabaseConfig.isConfigured());
+        dbStatus.put("service", "Supabase REST API");
+        dbStatus.put("url", SupabaseConfig.getSupabaseUrl());
+        if (supabaseError != null) dbStatus.put("error", supabaseError);
         health.put("database", dbStatus);
 
         // Engine Status
@@ -53,6 +54,6 @@ public class HealthApiController extends BaseApiHandler {
         engineStatus.put("simulationRunning", fraudService.isSimulationRunning());
         health.put("engine", engineStatus);
 
-        sendJson(exchange, dbOk ? 200 : 503, ApiResponse.ok("Health check completed", health));
+        sendJson(exchange, 200, ApiResponse.ok("Health check completed", health));
     }
 }

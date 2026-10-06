@@ -14,7 +14,7 @@ if exist "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\java.exe
 
 REM 2. Load .env file into environment if present
 if exist ".env" (
-    echo [CONFIG] Reading .env configuration file...
+    echo [CONFIG] Loading .env configuration...
     for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
         set "KEY=%%A"
         set "VAL=%%B"
@@ -23,7 +23,7 @@ if exist ".env" (
         )
     )
 ) else if exist "..\.env" (
-    echo [CONFIG] Reading ..\.env configuration file...
+    echo [CONFIG] Loading ..\.env configuration...
     for /f "usebackq tokens=1,* delims==" %%A in ("..\.env") do (
         set "KEY=%%A"
         set "VAL=%%B"
@@ -37,7 +37,7 @@ REM 3. Launch Java Application
 if exist "SentinelFraudDefense.jar" (
     java -jar SentinelFraudDefense.jar
 ) else (
-    java -cp "bin;lib\postgresql-42.7.3.jar;lib\slf4j-api.jar;lib\slf4j-simple.jar;lib\*" com.sentinel.Main
+    java -cp "bin;lib\slf4j-api.jar;lib\slf4j-simple.jar;lib\*" com.sentinel.Main
 )
 
 if %ERRORLEVEL% NEQ 0 (

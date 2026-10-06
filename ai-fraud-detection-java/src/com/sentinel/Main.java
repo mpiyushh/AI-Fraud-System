@@ -1,8 +1,9 @@
 package com.sentinel;
 
-import com.sentinel.db.DatabaseConnectionFactory;
 import com.sentinel.exception.DatabaseException;
 import com.sentinel.service.FraudDetectionEngine;
+import com.sentinel.supabase.SupabaseClient;
+import com.sentinel.supabase.SupabaseConfig;
 import com.sentinel.ui.FraudDetectionDashboard;
 import com.sentinel.ui.LoginDialog;
 
@@ -12,28 +13,26 @@ import java.awt.GraphicsEnvironment;
 
 /**
  * Main application entry point for the Sentinel AI Fraud Detection System.
- * Connects directly to Supabase PostgreSQL and launches the authentication gateway.
+ * Connects directly to Supabase via HTTPS REST API and launches the application gateway.
  */
 public class Main {
 
     public static void main(String[] args) {
         System.out.println("==========================================================");
-        System.out.println("   SENTINEL AI // Autonomous Fraud Defense Matrix v4.9   ");
+        System.out.println("   SENTINEL AI // Autonomous Fraud Defense Matrix v5.0   ");
         System.out.println("==========================================================");
 
-        // 1. Initialize Supabase PostgreSQL Connection & Bootstrap Tables
-        System.out.println("[BOOT] Connecting to Supabase PostgreSQL Database...");
-        try {
-            DatabaseConnectionFactory.getInstance().initializeDatabase();
-            System.out.println("[BOOT] Supabase PostgreSQL Database Tables (transactions, user_profiles, audit_logs) Ready.");
-        } catch (DatabaseException e) {
-            System.err.println("\n[DATABASE CONFIGURATION ERROR] " + e.getMessage());
+        // 1. Verify Supabase Configuration
+        System.out.println("[BOOT] Connecting to Supabase API (HTTPS REST Client)...");
+        if (!SupabaseConfig.isConfigured()) {
+            String errorMsg = SupabaseConfig.getMissingConfigMessage();
+            System.err.println("\n[SUPABASE CONFIGURATION ERROR] " + errorMsg);
             if (!GraphicsEnvironment.isHeadless()) {
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(
                             null,
-                            e.getMessage() + "\n\nPlease configure your .env file or environment variables.",
-                            "Database Configuration Error",
+                            errorMsg,
+                            "Supabase Configuration Error",
                             JOptionPane.ERROR_MESSAGE
                     );
                     System.exit(1);
@@ -42,6 +41,18 @@ public class Main {
                 System.exit(1);
             }
             return;
+        }
+
+        // Test Supabase connectivity
+        try {
+            boolean connected = SupabaseClient.getInstance().checkConnection();
+            if (connected) {
+                System.out.println("[BOOT] Supabase API Endpoint Connected: " + SupabaseConfig.getSupabaseUrl());
+            } else {
+                System.out.println("[BOOT] Supabase API configured: " + SupabaseConfig.getSupabaseUrl());
+            }
+        } catch (Exception e) {
+            System.out.println("[BOOT WARNING] Supabase API probe: " + e.getMessage());
         }
 
         // 2. Instantiate Multithreaded Fraud Detection Engine

@@ -19,7 +19,7 @@ import java.util.concurrent.*;
  * Fulfills:
  * - Multithreading & Synchronization (BlockingQueue, ExecutorService, Worker Threads)
  * - OOP Implementation & Collections
- * - Integration with Database DAOs & JDBC
+ * - Integration with Database DAOs & Supabase REST API
  */
 public class FraudDetectionEngine {
 
@@ -46,7 +46,7 @@ public class FraudDetectionEngine {
         this.configurationDAO = new com.sentinel.dao.ConfigurationDAO();
         this.metrics = new MetricsAggregator();
 
-        // Load configuration from JDBC database
+        // Load configuration from Supabase
         try {
             this.currentConfig = configurationDAO.findById("DEFAULT");
             if (this.currentConfig != null) {
@@ -109,7 +109,7 @@ public class FraudDetectionEngine {
     }
 
     /**
-     * Updates system configurations and persists to JDBC.
+     * Updates system configurations and persists to Supabase.
      * Fulfills GUVI: Admin - System Configuration.
      */
     public synchronized void applyConfiguration(com.sentinel.model.SystemConfiguration config) throws Exception {
@@ -152,7 +152,7 @@ public class FraudDetectionEngine {
             userProfileDAO.save(profile);
         }
 
-        // Persist via JDBC
+        // Persist via Supabase
         transactionDAO.save(tx);
 
         metrics.recordTransaction(tx.getAmount(), result.isBlocked(), result.isChallenged(), result.getLatencyMs());
