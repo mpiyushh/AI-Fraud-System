@@ -1,9 +1,8 @@
 -- =============================================================================
 -- SENTINEL AI FRAUD DETECTION SYSTEM
--- Supabase / PostgreSQL Production Schema Definition
+-- Supabase / PostgreSQL Production Schema Definition with RLS Policies
 -- =============================================================================
 
--- Enable UUID extension if needed
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. USER PROFILES TABLE (Feature store & baseline behavioral stats)
@@ -73,6 +72,97 @@ CREATE INDEX IF NOT EXISTS idx_transactions_verdict ON transactions (verdict);
 CREATE INDEX IF NOT EXISTS idx_transactions_analyst_status ON transactions (analyst_status);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_tx_id ON audit_logs (tx_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs (timestamp DESC);
+
+-- =============================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- =============================================================================
+
+-- Enable Row Level Security on all tables
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_configurations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Clean up any existing policies
+DROP POLICY IF EXISTS "Allow read user_profiles" ON user_profiles;
+DROP POLICY IF EXISTS "Allow insert user_profiles" ON user_profiles;
+DROP POLICY IF EXISTS "Allow update user_profiles" ON user_profiles;
+DROP POLICY IF EXISTS "Allow delete user_profiles" ON user_profiles;
+
+DROP POLICY IF EXISTS "Allow read transactions" ON transactions;
+DROP POLICY IF EXISTS "Allow insert transactions" ON transactions;
+DROP POLICY IF EXISTS "Allow update transactions" ON transactions;
+DROP POLICY IF EXISTS "Allow delete transactions" ON transactions;
+
+DROP POLICY IF EXISTS "Allow read system_configurations" ON system_configurations;
+DROP POLICY IF EXISTS "Allow insert system_configurations" ON system_configurations;
+DROP POLICY IF EXISTS "Allow update system_configurations" ON system_configurations;
+
+DROP POLICY IF EXISTS "Allow read audit_logs" ON audit_logs;
+DROP POLICY IF EXISTS "Allow insert audit_logs" ON audit_logs;
+
+-- Policies for user_profiles
+CREATE POLICY "Allow read user_profiles" ON user_profiles
+    FOR SELECT TO anon, authenticated
+    USING (true);
+
+CREATE POLICY "Allow insert user_profiles" ON user_profiles
+    FOR INSERT TO anon, authenticated
+    WITH CHECK (true);
+
+CREATE POLICY "Allow update user_profiles" ON user_profiles
+    FOR UPDATE TO anon, authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "Allow delete user_profiles" ON user_profiles
+    FOR DELETE TO anon, authenticated
+    USING (true);
+
+-- Policies for transactions
+CREATE POLICY "Allow read transactions" ON transactions
+    FOR SELECT TO anon, authenticated
+    USING (true);
+
+CREATE POLICY "Allow insert transactions" ON transactions
+    FOR INSERT TO anon, authenticated
+    WITH CHECK (true);
+
+CREATE POLICY "Allow update transactions" ON transactions
+    FOR UPDATE TO anon, authenticated
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "Allow delete transactions" ON transactions
+    FOR DELETE TO anon, authenticated
+    USING (true);
+
+-- Policies for system_configurations
+CREATE POLICY "Allow read system_configurations" ON system_configurations
+    FOR SELECT TO anon, authenticated
+    USING (true);
+
+CREATE POLICY "Allow insert system_configurations" ON system_configurations
+    FOR INSERT TO anon, authenticated
+    WITH CHECK (true);
+
+CREATE POLICY "Allow update system_configurations" ON system_configurations
+    FOR UPDATE TO anon, authenticated
+    USING (true)
+    WITH CHECK (true);
+
+-- Policies for audit_logs (append-only + read)
+CREATE POLICY "Allow read audit_logs" ON audit_logs
+    FOR SELECT TO anon, authenticated
+    USING (true);
+
+CREATE POLICY "Allow insert audit_logs" ON audit_logs
+    FOR INSERT TO anon, authenticated
+    WITH CHECK (true);
+
+-- =============================================================================
+-- SEED INITIAL DATA
+-- =============================================================================
 
 -- Seed Initial User Profiles
 INSERT INTO user_profiles (user_id, full_name, primary_location, trusted_device, avg_amount, std_dev, tx_count, chargeback_count, is_blacklisted, last_seen_timestamp, last_seen_location)
