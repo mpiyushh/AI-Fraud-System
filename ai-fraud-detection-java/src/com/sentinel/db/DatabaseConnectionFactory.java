@@ -4,14 +4,17 @@ import com.sentinel.exception.DatabaseException;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,7 +63,7 @@ public class DatabaseConnectionFactory {
         this.dbUrl = resolvedUrl;
         this.dbUser = resolvedUser;
         this.dbPassword = resolvedPassword;
-        this.isPostgres = this.dbUrl != null && this.dbUrl.startsWith("jdbc:postgresql");
+        this.isPostgres = this.dbUrl != null && (this.dbUrl.startsWith("jdbc:postgresql") || this.dbUrl.contains("postgresql"));
     }
 
     public static synchronized DatabaseConnectionFactory getInstance() {
@@ -129,28 +132,56 @@ public class DatabaseConnectionFactory {
      * Scans for .env file across standard project root and runtime locations.
      */
     private static void loadDotEnvFile() {
-        String[] candidatePaths = {
-            ".env",
-            "../.env",
-            "ai-fraud-detection-java/.env",
-            System.getProperty("user.dir") + File.separator + ".env",
-            System.getProperty("user.dir") + File.separator + ".." + File.separator + ".env"
-        };
+        List<File> candidates = new ArrayList<>();
 
-        for (String path : candidatePaths) {
-            File file = new File(path);
-            if (file.exists() && file.isFile()) {
-                parseEnvFile(file);
-                System.out.println("[CONFIG] Loaded Supabase credentials from: " + file.getAbsolutePath());
+        // 1. Explicit system property if passed
+        String explicitPath = System.getProperty("env.file");
+        if (explicitPath != null && !explicitPath.trim().isEmpty()) {
+            candidates.add(new File(explicitPath.trim()));
+        }
+
+        // 2. Current working directory and parent
+        String userDir = System.getProperty("user.dir");
+        if (userDir != null) {
+            candidates.add(new File(userDir, ".env"));
+            candidates.add(new File(userDir, "ai-fraud-detection-java/.env"));
+            candidates.add(new File(userDir, "../.env"));
+        }
+
+        // 3. Code source / JAR location directory
+        try {
+            URI codeUri = DatabaseConnectionFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            File codeFile = new File(codeUri);
+            File codeDir = codeFile.isDirectory() ? codeFile : codeFile.getParentFile();
+            if (codeDir != null) {
+                candidates.add(new File(codeDir, ".env"));
+                candidates.add(new File(codeDir.getParentFile(), ".env"));
+                candidates.add(new File(codeDir.getParentFile(), "ai-fraud-detection-java/.env"));
+            }
+        } catch (Exception ignored) {}
+
+        // 4. Standard relative candidate paths
+        candidates.add(new File(".env"));
+        candidates.add(new File("../.env"));
+        candidates.add(new File("ai-fraud-detection-java/.env"));
+
+        for (File candidate : candidates) {
+            if (candidate != null && candidate.exists() && candidate.isFile()) {
+                parseEnvFile(candidate);
+                System.out.println("[CONFIG] Successfully loaded environment configuration from: " + candidate.getAbsolutePath());
                 break;
             }
         }
     }
 
     private static void parseEnvFile(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
+                // Remove UTF-8 BOM if present on first line
+                if (line.startsWith("\uFEFF")) {
+                    line = line.substring(1);
+                }
                 String trimmed = line.trim();
                 if (trimmed.isEmpty() || trimmed.startsWith("#")) {
                     continue;
@@ -167,7 +198,7 @@ public class DatabaseConnectionFactory {
                     dotEnvProperties.put(key, val);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("[CONFIG WARNING] Failed to read .env file at " + file.getPath() + ": " + e.getMessage());
         }
     }
@@ -190,17 +221,17 @@ public class DatabaseConnectionFactory {
     }
 
     private void loadDriver() throws DatabaseException {
-        try {
-            if (isPostgres || (dbUrl != null && dbUrl.contains("postgresql"))) {
+        if (isPostgres || (dbUrl != null && dbUrl.contains("postgresql"))) {
+            try {
                 Class.forName("org.postgresql.Driver");
-            } else if (dbUrl != null && dbUrl.startsWith("jdbc:sqlite")) {
-                Class.forName("org.sqlite.JDBC");
-            } else {
-                Class.forName("org.postgresql.Driver");
+            } catch (ClassNotFoundException e) {
+                throw new DatabaseException("PostgreSQL JDBC driver (org.postgresql.Driver) not found on classpath. " +
+                        "Ensure lib/postgresql-42.7.3.jar is included in runtime classpath.", e);
             }
-        } catch (ClassNotFoundException e) {
-            throw new DatabaseException("PostgreSQL JDBC driver (org.postgresql.Driver) not found on classpath. " +
-                    "Ensure lib/postgresql-42.7.3.jar is included in runtime classpath.", e);
+        } else if (dbUrl != null && dbUrl.startsWith("jdbc:sqlite")) {
+            try {
+                Class.forName("org.sqlite.JDBC");
+            } catch (ClassNotFoundException ignored) {}
         }
     }
 
@@ -246,7 +277,79 @@ public class DatabaseConnectionFactory {
 
         if (isPostgres) {
             initializePostgresDatabase();
+        } else {
+            initializeTestDatabase();
         }
+    }
+
+    private void initializeTestDatabase() {
+        String createTransactionsTable =
+                "CREATE TABLE IF NOT EXISTS transactions (" +
+                "  tx_id VARCHAR(64) PRIMARY KEY," +
+                "  user_id VARCHAR(64) NOT NULL," +
+                "  user_name VARCHAR(255) NOT NULL," +
+                "  card_masked VARCHAR(64) NOT NULL," +
+                "  bank VARCHAR(64) DEFAULT 'Chase'," +
+                "  amount DOUBLE PRECISION NOT NULL," +
+                "  currency VARCHAR(10) NOT NULL DEFAULT 'USD'," +
+                "  tx_timestamp BIGINT NOT NULL," +
+                "  ip_address VARCHAR(45) NOT NULL," +
+                "  location VARCHAR(255) NOT NULL," +
+                "  device_hash VARCHAR(255) NOT NULL," +
+                "  is_vpn_tor BOOLEAN NOT NULL DEFAULT FALSE," +
+                "  risk_score INTEGER," +
+                "  verdict VARCHAR(64)," +
+                "  dominant_threat VARCHAR(255)," +
+                "  analyst_status VARCHAR(64) DEFAULT 'PENDING'," +
+                "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+
+        String createUserProfilesTable =
+                "CREATE TABLE IF NOT EXISTS user_profiles (" +
+                "  user_id VARCHAR(64) PRIMARY KEY," +
+                "  full_name VARCHAR(255) NOT NULL," +
+                "  primary_location VARCHAR(255)," +
+                "  trusted_device VARCHAR(255)," +
+                "  avg_amount DOUBLE PRECISION DEFAULT 50.0," +
+                "  std_dev DOUBLE PRECISION DEFAULT 20.0," +
+                "  tx_count INTEGER DEFAULT 1," +
+                "  chargeback_count INTEGER DEFAULT 0," +
+                "  is_blacklisted BOOLEAN DEFAULT FALSE," +
+                "  last_seen_timestamp BIGINT," +
+                "  last_seen_location VARCHAR(255)," +
+                "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+
+        String createAuditTable =
+                "CREATE TABLE IF NOT EXISTS audit_logs (" +
+                "  log_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  tx_id VARCHAR(64) NOT NULL," +
+                "  analyst_name VARCHAR(255) NOT NULL," +
+                "  action_taken VARCHAR(255) NOT NULL," +
+                "  timestamp BIGINT NOT NULL," +
+                "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+
+        String createConfigTable =
+                "CREATE TABLE IF NOT EXISTS system_configurations (" +
+                "  config_key VARCHAR(64) PRIMARY KEY DEFAULT 'DEFAULT'," +
+                "  block_threshold INTEGER DEFAULT 80," +
+                "  challenge_threshold INTEGER DEFAULT 55," +
+                "  velocity_limit INTEGER DEFAULT 3," +
+                "  max_amount DOUBLE PRECISION DEFAULT 10000.0," +
+                "  tor_block BOOLEAN DEFAULT TRUE," +
+                "  model_version VARCHAR(128) DEFAULT 'v4.8-Neural-Ensemble'," +
+                "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ");";
+
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute(createTransactionsTable);
+            stmt.execute(createUserProfilesTable);
+            stmt.execute(createAuditTable);
+            stmt.execute(createConfigTable);
+            seedPostgresInitialProfiles(conn);
+        } catch (Exception ignored) {}
     }
 
     private void initializePostgresDatabase() throws DatabaseException {
