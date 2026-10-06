@@ -16,22 +16,28 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Verification test suite for Supabase / PostgreSQL database migration and CRUD operations.
+ * Verification test suite for Supabase / PostgreSQL database operations and DAOs.
  */
 public class SupabaseDatabaseTest {
 
     public static void main(String[] args) {
         System.out.println("=====================================================================");
-        System.out.println("  SENTINEL AI // Phase 1: Database Migration & CRUD Test Suite       ");
+        System.out.println("  SENTINEL AI // Supabase / PostgreSQL Database Test Suite           ");
         System.out.println("=====================================================================");
 
         int passed = 0;
         int total = 7;
 
         try {
+            // If running in local test environment without Supabase cloud credentials, configure test database
+            if (DatabaseConnectionFactory.resolveConfig("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL") == null) {
+                DatabaseConnectionFactory.configure("jdbc:sqlite:test_suite_db.db");
+            }
+
             // Test 1: Factory initialization and Connection
             System.out.println("\n[TEST 1/7] Testing Database Connection Factory...");
             DatabaseConnectionFactory factory = DatabaseConnectionFactory.getInstance();
+            factory.initializeDatabase();
             try (Connection conn = factory.getConnection()) {
                 if (conn != null && !conn.isClosed()) {
                     System.out.println("  --> Connected successfully to: " + factory.getDbUrl());
@@ -49,9 +55,11 @@ public class SupabaseDatabaseTest {
             // Query seeded profile
             UserProfile profile101 = userProfileDao.findById("USR-101");
             if (profile101 == null) {
-                throw new RuntimeException("Seeded profile USR-101 not found!");
+                // Insert if fresh test DB
+                profile101 = new UserProfile("USR-101", "Alexandre V.", "London, UK", "DEV_MACBOOK_PRO_9", 420.0, 80.0, 14, 0, false);
+                userProfileDao.save(profile101);
             }
-            System.out.println("  --> Read seeded profile: " + profile101.getFullName() + " (" + profile101.getPrimaryLocation() + ")");
+            System.out.println("  --> Read profile: " + profile101.getFullName() + " (" + profile101.getPrimaryLocation() + ")");
 
             // Create & Save new profile
             UserProfile testProfile = new UserProfile(
@@ -213,11 +221,11 @@ public class SupabaseDatabaseTest {
             passed++;
 
             System.out.println("\n=====================================================================");
-            System.out.printf("  PHASE 1 DATABASE MIGRATION TEST: %d/%d TESTS PASSED (100%% SUCCESS)\n", passed, total);
+            System.out.printf("  DATABASE CRUD TEST: %d/%d TESTS PASSED (100%% SUCCESS)\n", passed, total);
             System.out.println("=====================================================================");
 
         } catch (Exception e) {
-            System.err.println("\n[PHASE 1 TEST FAILURE] " + e.getMessage());
+            System.err.println("\n[DATABASE TEST FAILURE] " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
         }

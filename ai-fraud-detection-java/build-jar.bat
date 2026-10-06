@@ -1,31 +1,47 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 echo ========================================================
 echo   Building SENTINEL AI Fraud Defense Executable Fat JAR
 echo ========================================================
 
-set "JAVA_HOME=C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot"
-set "PATH=%JAVA_HOME%\bin;%PATH%"
-
 cd /d "%~dp0"
 
-echo [1/3] Compiling source code...
-if not exist "bin" mkdir bin
-javac -encoding UTF-8 -cp "lib\sqlite-jdbc.jar;lib\slf4j-api.jar;lib\slf4j-simple.jar" -d bin src\com\sentinel\exception\*.java src\com\sentinel\model\*.java src\com\sentinel\model\detectors\*.java src\com\sentinel\dao\*.java src\com\sentinel\db\*.java src\com\sentinel\service\*.java src\com\sentinel\ui\*.java src\com\sentinel\test\*.java src\com\sentinel\Main.java
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Compilation failed!
-    exit /b %ERRORLEVEL%
+REM 1. Locate JDK
+if exist "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\javac.exe" (
+    set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
+    set "PATH=!JAVA_HOME!\bin;!PATH!"
+) else if not defined JAVA_HOME (
+    for /f "delims=" %%I in ('where javac 2^>nul') do (
+        set "JAVAC_EXE=%%I"
+    )
 )
 
-echo [2/3] Extracting JDBC and SLF4J dependencies into bin...
+echo [1/4] Cleaning previous build artifacts...
+if exist "SentinelFraudDefense.jar" del /f /q "SentinelFraudDefense.jar"
+if exist "bin" rd /s /q "bin"
+mkdir bin
+
+echo [2/4] Compiling Java source code with Supabase PostgreSQL JDBC...
+set "CP=lib\postgresql-42.7.3.jar;lib\slf4j-api.jar;lib\slf4j-simple.jar"
+
+dir /s /b src\*.java > sources.txt
+javac -encoding UTF-8 -cp "%CP%" -d bin @sources.txt
+set COMPILE_ERR=%ERRORLEVEL%
+del /f /q sources.txt
+
+if %COMPILE_ERR% NEQ 0 (
+    echo [ERROR] Compilation failed!
+    exit /b %COMPILE_ERR%
+)
+
+echo [3/4] Extracting PostgreSQL and SLF4J dependencies into fat package...
 cd bin
-jar -xf ..\lib\sqlite-jdbc.jar
+jar -xf ..\lib\postgresql-42.7.3.jar
 jar -xf ..\lib\slf4j-api.jar
 jar -xf ..\lib\slf4j-simple.jar
 cd ..
 
-echo [3/3] Packaging standalone fat JAR SentinelFraudDefense.jar...
+echo [4/4] Packaging standalone fat JAR SentinelFraudDefense.jar...
 jar -cfe SentinelFraudDefense.jar com.sentinel.Main -C bin .
 
 echo ========================================================

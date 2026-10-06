@@ -3,6 +3,7 @@ package com.sentinel.test;
 import com.sentinel.backend.dto.ApiResponse;
 import com.sentinel.backend.server.SentinelApiServer;
 import com.sentinel.backend.util.JsonUtils;
+import com.sentinel.db.DatabaseConnectionFactory;
 import com.sentinel.service.FraudDetectionEngine;
 
 import java.io.BufferedReader;
@@ -33,6 +34,11 @@ public class BackendIntegrationTest {
         SentinelApiServer server = null;
 
         try {
+            // Configure test database if no Supabase environment variable is set
+            if (DatabaseConnectionFactory.resolveConfig("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL") == null) {
+                DatabaseConnectionFactory.configure("jdbc:sqlite:backend_test_db.db");
+            }
+
             // 1. Boot up backend server on test port
             int testPort = 8089;
             FraudDetectionEngine engine = new FraudDetectionEngine();
@@ -173,7 +179,6 @@ public class BackendIntegrationTest {
             System.out.println("  --> Total Screened: " + metricsData.get("totalScreened"));
             System.out.println("  --> Blocked Capital: $" + metricsData.get("blockedCapital"));
             System.out.println("  --> Avg Latency: " + metricsData.get("avgLatencyMs") + " ms");
-            System.out.println("  --> Model: " + metricsData.get("activeModelVersion"));
             passed++;
 
             // Test 9: System Configuration Management
