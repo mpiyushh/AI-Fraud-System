@@ -124,6 +124,18 @@ Responsibilities:
 - Frontend styling
 - UI/UX design
 
+### Rohit Ranjan
+**Research & Documentation Lead**
+
+Responsibilities:
+- Cybersecurity and fraud detection research
+- Project requirement documentation
+- Research on fraud detection techniques
+- Test-case preparation
+- Technical documentation and final report
+- Presentation preparation
+
+
 ## Project Structure
 
 ```text
