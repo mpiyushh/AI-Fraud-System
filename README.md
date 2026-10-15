@@ -86,16 +86,21 @@ Result displayed to User
 
 ## Team Members
 
-### Krishnna Mudgal
-**Team Leader-Machine Learning & Data Processing**
 
-Responsibilities:
-- Dataset preparation
-- Data preprocessing
-- Feature engineering
-- ML model development
-- Model evaluation
-- Fraud prediction
+### Krishnna Mudgal
+**Team Leader – Machine Learning & Data Processing | Research & Documentation Lead**
+
+**Responsibilities:**
+- Dataset preparation and preprocessing
+- Feature engineering and ML model development
+- Model evaluation and fraud prediction
+- Cybersecurity and fraud detection research
+- Research on fraud detection techniques
+- Project requirements documentation
+- Test-case preparation
+- Technical documentation and final report
+- Presentation preparation
+
 
 ### Piyush Mishra
 **Database, Backend & System Integration**
@@ -125,15 +130,6 @@ Responsibilities:
 - UI/UX design
 
 ### Rohit Ranjan
-**Research & Documentation Lead**
-
-Responsibilities:
-- Cybersecurity and fraud detection research
-- Project requirement documentation
-- Research on fraud detection techniques
-- Test-case preparation
-- Technical documentation and final report
-- Presentation preparation
 
 
 ## Project Structure
